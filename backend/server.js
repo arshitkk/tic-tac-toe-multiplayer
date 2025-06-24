@@ -1,9 +1,14 @@
 const http = require("http");
 const { Server } = require("socket.io");
-const httpServer = http.createServer();
+
+const httpServer = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("Socket server is running 🚀");
+});
+
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://tic-tac-toe-khelo.vercel.app"],
   },
 });
 

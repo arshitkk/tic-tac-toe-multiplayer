@@ -9,7 +9,7 @@ function EnterGame() {
   const [roomCode, setRoomCode] = useState(""); // To save the room code
   const [playerSymbol, setPlayerSymbol] = useState(""); // To save the player symbol
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io("https://tic-tac-toe-multiplayer-a57i.onrender.com");
     setSocket(socket);
     socket.on("connect", () => {
       console.log("connected");
@@ -55,7 +55,7 @@ function EnterGame() {
     socket.on("startGame", () => {
       setStartGame(true);
     });
-    
+
     // Clean up the event listeners
     return () => {
       socket.off("roomJoined");
