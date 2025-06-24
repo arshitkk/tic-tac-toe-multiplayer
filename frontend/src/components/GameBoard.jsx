@@ -45,7 +45,6 @@ function GameBoard({ socket, roomCode, playerSymbol, startGame }) {
   const gamePlay = (index) => {
     // Only allow gameplay if the game has started
     if (startGame) {
-
       // Block move if:
       // 1. The selected box is already filled
       // 2. It's not this player's turn
@@ -77,6 +76,51 @@ function GameBoard({ socket, roomCode, playerSymbol, startGame }) {
       setIsMyTurn(false);
     }
   };
+
+  const resetGame = () => {
+    // Tell the server to reset the game for this room
+    // The server will broadcast the reset to both players
+    socket.emit("resetGame", roomCode);
+  };
+  useEffect(() => {
+    checkWinner(); // Check for win every time board updates
+  }, [board]);
+
+  useEffect(() => {
+    // If socket isn't connected yet, skip this setup
+    if (!socket) return;
+
+    // When another player makes a move, update the board with that move
+    socket.on("playerMove", ({ index, turn }) => {
+      setBoard((prevBoard) =>
+        prevBoard.map((box, idx) => (idx === index ? turn : box))
+      );
+
+      // After receiving the move, prepare for the next turn
+      const nextTurn = turn === "X" ? "O" : "X";
+      setTurn(nextTurn);
+
+      // It's now this player's turn to play
+      setIsMyTurn(true);
+    });
+
+    // When reset is triggered from any player, reset everything on this client too
+    socket.on("resetGame", () => {
+      setBoard(Array(9).fill(null)); // Clear the board
+      setTurn("X"); // Set first turn to "X"
+      setWinner(null); // Clear winner state
+      setWinnerBoxes([]); // Clear highlight
+      setDraw(null); // Clear draw
+      setIsMyTurn(true); // Allow this player to start playing
+    });
+
+    // Clean up all listeners when component unmounts or re-renders
+    return () => {
+      socket.off("startGame"); // Not used here but safe to remove
+      socket.off("playerMove");
+      socket.off("resetGame");
+    };
+  }, [socket]);
 
   return (
     <div>
